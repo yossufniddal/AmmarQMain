@@ -68,33 +68,24 @@
   <img src="images.png" alt="Logo" id="logo" />
   <h1>Desk Ticket Caller</h1>
 
-  <!-- ✅ Prevents Safari auto-submit -->
-  <form onsubmit="return false;">
+  <select id="deskId" onchange="enableButtons()">
+    <option value="" disabled selected>Select Window</option>
+    <script>
+      for (let i = 1; i <= 30; i++) {
+        document.write(`<option value="${i}">Desk ${i}</option>`);
+      }
+    </script>
+  </select>
 
-    <select id="deskId" onchange="enableButtons()">
-      <option value="" disabled selected>Select Window</option>
-    </select>
-
-    <button type="button" id="callBtn" class="button call-btn" onclick="callNext(event)" disabled>📞 Call Next Ticket</button>
-    <button type="button" id="recallBtn" class="button recall-btn" onclick="recallTicket(event)" disabled>🔁 Recall Ticket</button>
-    <button type="button" id="skipBtn" class="button skip-btn" onclick="skipTicket(event)" disabled>⏭️ Skip Ticket</button>
-
-  </form>
+  <button type="button" id="callBtn" class="button call-btn" onclick="callNext()" disabled>📞 Call Next Ticket</button>
+  <button type="button" id="recallBtn" class="button recall-btn" onclick="recallTicket()" disabled>🔁 Recall Ticket</button>
+  <button type="button" id="skipBtn" class="button skip-btn" onclick="skipTicket()" disabled>⏭️ Skip Ticket</button>
 
   <div id="status">Now Serving: -</div>
 
   <script>
     const API_BASE_URL = "https://qmainapi.jmactivations.com";
     let lastTicket = null;
-
-    // ✅ Populate desk options safely
-    const select = document.getElementById("deskId");
-    for (let i = 1; i <= 30; i++) {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = `Desk ${i}`;
-      select.appendChild(opt);
-    }
 
     function updateStatus(text) {
       document.getElementById("status").innerText = text;
@@ -106,8 +97,7 @@
       document.getElementById("skipBtn").disabled = false;
     }
 
-    async function callNext(event) {
-      if (event) event.preventDefault(); // 🔒 Prevent Safari reload
+    async function callNext() {
       const deskId = Number(document.getElementById("deskId").value);
       if (!deskId) return updateStatus("⚠️ Please select a desk.");
 
@@ -124,6 +114,7 @@
         });
 
         const data = await res.json();
+        console.log(data);
         if (data.next_ticket_number) {
           lastTicket = data.next_ticket_number;
           updateStatus("Now Serving: " + lastTicket);
@@ -136,8 +127,7 @@
       }
     }
 
-    async function recallTicket(event) {
-      if (event) event.preventDefault(); // 🔒 Prevent Safari reload
+    async function recallTicket() {
       if (!lastTicket) return updateStatus("⚠️ No ticket to recall.");
       const deskId = Number(document.getElementById("deskId").value);
       if (!deskId) return updateStatus("⚠️ Please select a desk.");
@@ -160,8 +150,7 @@
       }
     }
 
-    async function skipTicket(event) {
-      if (event) event.preventDefault(); // 🔒 Prevent Safari reload
+    async function skipTicket() {
       if (!lastTicket) return updateStatus("⚠️ No ticket to skip.");
       const deskId = Number(document.getElementById("deskId").value);
       if (!deskId) return updateStatus("⚠️ Please select a desk.");
