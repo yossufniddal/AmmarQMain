@@ -70,11 +70,6 @@
 
   <select id="deskId" onchange="enableButtons()">
     <option value="" disabled selected>Select Window</option>
-    <script>
-      for (let i = 1; i <= 30; i++) {
-        document.write(`<option value="${i}">Desk ${i}</option>`);
-      }
-    </script>
   </select>
 
   <button type="button" id="callBtn" class="button call-btn" onclick="callNext()" disabled>📞 Call Next Ticket</button>
@@ -86,6 +81,15 @@
   <script>
     const API_BASE_URL = "https://qmainapi.jmactivations.com";
     let lastTicket = null;
+
+    // ✅ Populate desk options dynamically (no document.write)
+    const select = document.getElementById("deskId");
+    for (let i = 1; i <= 30; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `Desk ${i}`;
+      select.appendChild(opt);
+    }
 
     function updateStatus(text) {
       document.getElementById("status").innerText = text;
