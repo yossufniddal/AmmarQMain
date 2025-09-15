@@ -13,10 +13,8 @@
     }
 
     #logo {
-      width: 150px;
-      height: auto;
+      max-width: 150px;
       margin-bottom: 20px;
-      display: inline-block;
     }
 
     h1 {
@@ -67,15 +65,12 @@
 </head>
 <body>
 
-  <!-- ✅ Inline SVG logo (no external file) -->
-  <svg id="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="48" fill="#007acc"/>
-    <text x="50" y="57" font-size="28" text-anchor="middle" fill="white" font-family="Arial">LOGO</text>
-  </svg>
-
+  <img src="images.png" alt="Logo" id="logo" />
   <h1>Desk Ticket Caller</h1>
 
+  <!-- ✅ Prevents Safari auto-submit -->
   <form onsubmit="return false;">
+
     <select id="deskId" onchange="enableButtons()">
       <option value="" disabled selected>Select Window</option>
     </select>
@@ -83,6 +78,7 @@
     <button type="button" id="callBtn" class="button call-btn" onclick="callNext(event)" disabled>📞 Call Next Ticket</button>
     <button type="button" id="recallBtn" class="button recall-btn" onclick="recallTicket(event)" disabled>🔁 Recall Ticket</button>
     <button type="button" id="skipBtn" class="button skip-btn" onclick="skipTicket(event)" disabled>⏭️ Skip Ticket</button>
+
   </form>
 
   <div id="status">Now Serving: -</div>
@@ -111,7 +107,7 @@
     }
 
     async function callNext(event) {
-      if (event) event.preventDefault();
+      if (event) event.preventDefault(); // 🔒 Prevent Safari reload
       const deskId = Number(document.getElementById("deskId").value);
       if (!deskId) return updateStatus("⚠️ Please select a desk.");
 
@@ -141,7 +137,7 @@
     }
 
     async function recallTicket(event) {
-      if (event) event.preventDefault();
+      if (event) event.preventDefault(); // 🔒 Prevent Safari reload
       if (!lastTicket) return updateStatus("⚠️ No ticket to recall.");
       const deskId = Number(document.getElementById("deskId").value);
       if (!deskId) return updateStatus("⚠️ Please select a desk.");
@@ -165,7 +161,7 @@
     }
 
     async function skipTicket(event) {
-      if (event) event.preventDefault();
+      if (event) event.preventDefault(); // 🔒 Prevent Safari reload
       if (!lastTicket) return updateStatus("⚠️ No ticket to skip.");
       const deskId = Number(document.getElementById("deskId").value);
       if (!deskId) return updateStatus("⚠️ Please select a desk.");
