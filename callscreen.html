@@ -61,7 +61,7 @@
     #history-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(2, auto);
+      grid-template-rows: repeat(6, auto);
       gap: 10px;
     }
     .history-card {
@@ -89,7 +89,7 @@
     /* ✅ Credit label */
     #credit {
       position: fixed;
-      bottom: 5px;
+      top: 5px;
       left: 10px;
       font-size: 14px;
       color: #ccc;
@@ -97,6 +97,8 @@
   </style>
 </head>
 <body>
+  <div id="credit">Solution by jmactivations.com</div>
+
   <img src="logo-black-1.png" alt="Header Image" style="max-width: 300px; height: auto; margin: 40px auto; display: block;">
   <div id="ticket">Now Serving: -</div>
   <div id="window">At Window: -</div>
@@ -111,7 +113,6 @@
     <h2>Currently Serving</h2>
     <div id="history-grid"></div>
   </div>
-  <div id="credit">Solution by jmactivations.com</div>
 
   <script>
     const API_BASE_URL = "https://qmainapi.jmactivations.com"; // <-- Change this to your actual API
@@ -119,7 +120,7 @@
     let audioUnlocked = false;
 
     // ✅ Track active windows with update order
-    const activeTickets = new Map(); // window -> ticket
+    const activeTickets = [];
 
     document.body.addEventListener("click", () => {
       if (!audioUnlocked) {
@@ -136,8 +137,6 @@
     function pickBestEnglishVoice() {
       const voices = speechSynthesis.getVoices();
       const englishVoices = voices.filter(v => v.lang.startsWith("en"));
-
-      // ✅ Prioritize Google US English
       return englishVoices.find(v => v.name.includes("Google US English")) ||
              englishVoices.find(v => v.name.includes("Samantha")) ||
              englishVoices.find(v => v.name.includes("Bubbles")) ||
@@ -151,15 +150,12 @@
           resolve();
           return;
         }
-
         const utter = new SpeechSynthesisUtterance(text);
         utter.voice = selectedVoice;
-        utter.lang = "en-US"; // Force en-US
-
+        utter.lang = "en-US";
         utter.onend = () => {
           setTimeout(() => resolve(), 500);
         };
-
         console.log("📣 Speaking:", text, "with", utter.voice?.name);
         speechSynthesis.speak(utter);
       });
@@ -175,42 +171,25 @@
     }
 
     function updateHistory(ticket, window) {
-      // ✅ Remove window if it already exists, so we can re-insert at front
-      if (activeTickets.has(window)) {
-        activeTickets.delete(window);
-      }
-      // Insert window-ticket pair at the front
-      const newMap = new Map([[window, ticket]]);
-      for (const [w, t] of activeTickets) {
-        newMap.set(w, t);
-      }
-      // Replace with trimmed map (max 6)
-      activeTickets.clear();
-      let count = 0;
-      for (const [w, t] of newMap) {
-        if (count < 6) {
-          activeTickets.set(w, t);
-          count++;
-        } else break;
+      // Add new ticket-window at the front
+      activeTickets.unshift({ticket, window});
+      // Trim to 16
+      if (activeTickets.length > 16) {
+        activeTickets.length = 16;
       }
 
       // Render grid
       const grid = document.getElementById("history-grid");
       grid.innerHTML = "";
-
-      let i = 0;
-      for (const [win, t] of activeTickets) {
+      activeTickets.forEach((entry, i) => {
         const card = document.createElement("div");
         card.className = "history-card";
-        card.innerHTML = `<strong>${t}</strong>Window ${win}`;
-
+        card.innerHTML = `<strong>${entry.ticket}</strong>Window ${entry.window}`;
         if (i === 0) {
-          card.classList.add("new-ticket"); // highlight newest
+          card.classList.add("new-ticket");
         }
-
         grid.appendChild(card);
-        i++;
-      }
+      });
     }
 
     async function pollAnnouncements() {
@@ -221,26 +200,21 @@
             await delay(2000);
             continue;
           }
-
           const data = await response.json();
           if (!data || !data.ticket_number || !data.desk_name) continue;
 
-          // Update main display
           document.getElementById("ticket").innerText =
             "Now Serving: " + data.ticket_number;
           document.getElementById("window").innerText =
             "At Window: " + data.desk_name;
 
-          // Blink effect
           const ticketEl = document.getElementById("ticket");
           const windowEl = document.getElementById("window");
           ticketEl.classList.remove("blink"); void ticketEl.offsetWidth; ticketEl.classList.add("blink");
           windowEl.classList.remove("blink"); void windowEl.offsetWidth; windowEl.classList.add("blink");
 
-          // ✅ Update active windows
           updateHistory(data.ticket_number, data.desk_name);
 
-          // Speak
           const prefix = data.ticket_number.replace(/[0-9]/g, '');
           const number = parseInt(data.ticket_number.replace(/[^0-9]/g, ''), 10);
           const message = `Customer number ${prefix} ${number}, window number ${data.desk_name}`;
